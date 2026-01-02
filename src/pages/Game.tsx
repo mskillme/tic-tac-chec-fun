@@ -54,15 +54,8 @@ const Game = () => {
         );
 
         if (aiMove) {
+          // First select the piece to show visual feedback
           selectPiece(aiMove.piece, aiMove.from);
-          
-          setTimeout(() => {
-            const result = makeMove(aiMove.to);
-            if (result.success) {
-              playSound(result.captured ? 'capture' : aiMove.from ? 'move' : 'place');
-            }
-            setIsAIThinking(false);
-          }, 300);
         } else {
           setIsAIThinking(false);
         }
@@ -74,7 +67,33 @@ const Game = () => {
         clearTimeout(aiMoveTimeoutRef.current);
       }
     };
-  }, [gameState.currentPlayer, gameState.winner, mode, isAIThinking]);
+  }, [gameState.currentPlayer, gameState.winner, mode, isAIThinking, gameState.board, gameState.blackReserve, gameState.phase, difficulty, getValidMoves, getBestMove, selectPiece]);
+
+  // Execute AI move after piece is selected
+  useEffect(() => {
+    if (mode === 'ai' && isAIThinking && gameState.selectedPiece && gameState.currentPlayer === 'black') {
+      const timeoutId = setTimeout(() => {
+        const aiMove = getBestMove(
+          gameState.board,
+          'black',
+          gameState.blackReserve,
+          gameState.phase,
+          difficulty,
+          getValidMoves
+        );
+        
+        if (aiMove) {
+          const result = makeMove(aiMove.to);
+          if (result.success) {
+            playSound(result.captured ? 'capture' : aiMove.from ? 'move' : 'place');
+          }
+        }
+        setIsAIThinking(false);
+      }, 300);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [gameState.selectedPiece, isAIThinking, mode, gameState.currentPlayer]);
 
   const handleCellClick = useCallback((position: Position) => {
     if (!isPlayerTurn || gameState.winner || isAIThinking) return;
