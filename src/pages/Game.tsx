@@ -25,6 +25,7 @@ const Game = () => {
   
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isAIThinking, setIsAIThinking] = useState(false);
+  const isAIThinkingRef = useRef(false);
   const [gameRecorded, setGameRecorded] = useState(false);
   const [turnTime, setTurnTime] = useState(0);
   const aiMoveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -34,6 +35,11 @@ const Game = () => {
   const pendingAIMoveRef = useRef<ReturnType<typeof getBestMove>>(null);
 
   const isPlayerTurn = mode === 'local' || gameState.currentPlayer === 'white';
+
+  // Keep a ref in sync so AI timers don't get cancelled by effect re-runs
+  useEffect(() => {
+    isAIThinkingRef.current = isAIThinking;
+  }, [isAIThinking]);
 
   // Reset turn timer when player changes
   useEffect(() => {
@@ -70,7 +76,7 @@ const Game = () => {
 
   // AI Move - combined selection and execution
   useEffect(() => {
-    if (mode !== 'ai' || gameState.currentPlayer !== 'black' || gameState.winner || isAIThinking) {
+    if (mode !== 'ai' || gameState.currentPlayer !== 'black' || gameState.winner || isAIThinkingRef.current) {
       return;
     }
 
@@ -81,7 +87,8 @@ const Game = () => {
 
     const shouldForce = forceAIMoveRef.current;
     const delay = shouldForce ? 0 : 500 + Math.random() * 500;
-    
+
+    isAIThinkingRef.current = true;
     setIsAIThinking(true);
 
     // Step 1: Calculate and select piece
@@ -100,7 +107,7 @@ const Game = () => {
         pendingAIMoveRef.current = aiMove;
         // Select the piece for visual feedback
         selectPiece(aiMove.piece, aiMove.from);
-        
+
         // Step 2: Execute the stored move after a short delay
         aiExecuteTimeoutRef.current = setTimeout(() => {
           const storedMove = pendingAIMoveRef.current;
@@ -111,9 +118,11 @@ const Game = () => {
             }
             pendingAIMoveRef.current = null;
           }
+          isAIThinkingRef.current = false;
           setIsAIThinking(false);
         }, 300);
       } else {
+        isAIThinkingRef.current = false;
         setIsAIThinking(false);
       }
     }, delay);
@@ -125,8 +134,23 @@ const Game = () => {
       if (aiExecuteTimeoutRef.current) {
         clearTimeout(aiExecuteTimeoutRef.current);
       }
+      pendingAIMoveRef.current = null;
+      isAIThinkingRef.current = false;
     };
-  }, [gameState.currentPlayer, gameState.winner, gameState.board, gameState.blackReserve, gameState.phase, mode, isAIThinking, difficulty, getBestMove, getValidMoves, selectPiece, makeMove, playSound]);
+  }, [
+    gameState.currentPlayer,
+    gameState.winner,
+    gameState.board,
+    gameState.blackReserve,
+    gameState.phase,
+    mode,
+    difficulty,
+    getBestMove,
+    getValidMoves,
+    selectPiece,
+    makeMove,
+    playSound,
+  ]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
