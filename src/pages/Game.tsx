@@ -9,6 +9,7 @@ import { PieceRack } from '@/components/game/PieceRack';
 import { GameStatus } from '@/components/game/GameStatus';
 import { GameControls } from '@/components/game/GameControls';
 import { Button } from '@/components/ui/button';
+import { Clock } from 'lucide-react';
 import { Position, GameMode, Difficulty } from '@/types/game';
 
 const Game = () => {
@@ -25,9 +26,36 @@ const Game = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isAIThinking, setIsAIThinking] = useState(false);
   const [gameRecorded, setGameRecorded] = useState(false);
+  const [turnTime, setTurnTime] = useState(0);
   const aiMoveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const turnStartRef = useRef<number>(Date.now());
+  const forceAIMoveRef = useRef<boolean>(false);
 
   const isPlayerTurn = mode === 'local' || gameState.currentPlayer === 'white';
+
+  // Reset turn timer when player changes
+  useEffect(() => {
+    turnStartRef.current = Date.now();
+    setTurnTime(0);
+    forceAIMoveRef.current = false;
+  }, [gameState.currentPlayer]);
+
+  // Turn timer - update every 100ms
+  useEffect(() => {
+    if (gameState.winner) return;
+
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - turnStartRef.current) / 1000);
+      setTurnTime(elapsed);
+
+      // Force AI move after 10 seconds
+      if (mode === 'ai' && gameState.currentPlayer === 'black' && elapsed >= 10 && !forceAIMoveRef.current) {
+        forceAIMoveRef.current = true;
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [gameState.winner, mode, gameState.currentPlayer]);
 
   // Record game when there's a winner
   useEffect(() => {
@@ -38,9 +66,12 @@ const Game = () => {
     }
   }, [gameState.winner, gameRecorded, recordGame, mode, difficulty, playSound]);
 
-  // AI Move
+  // AI Move - triggers on turn change or force flag
   useEffect(() => {
     if (mode === 'ai' && gameState.currentPlayer === 'black' && !gameState.winner && !isAIThinking) {
+      const shouldForce = forceAIMoveRef.current;
+      const delay = shouldForce ? 0 : 500 + Math.random() * 500;
+      
       setIsAIThinking(true);
 
       aiMoveTimeoutRef.current = setTimeout(() => {
@@ -59,7 +90,7 @@ const Game = () => {
         } else {
           setIsAIThinking(false);
         }
-      }, 500 + Math.random() * 500);
+      }, delay);
     }
 
     return () => {
@@ -94,6 +125,12 @@ const Game = () => {
       return () => clearTimeout(timeoutId);
     }
   }, [gameState.selectedPiece, isAIThinking, mode, gameState.currentPlayer]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleCellClick = useCallback((position: Position) => {
     if (!isPlayerTurn || gameState.winner || isAIThinking) return;
@@ -160,6 +197,25 @@ const Game = () => {
             onToggleSound={handleToggleSound}
           />
         </div>
+
+        {/* Turn Timer */}
+        {!gameState.winner && (
+          <div className="flex justify-center">
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
+              turnTime >= 10 
+                ? 'bg-destructive/20 border-destructive text-destructive' 
+                : 'bg-card/80 border-border text-foreground'
+            }`}>
+              <Clock className="h-4 w-4" />
+              <span className="font-mono text-lg font-semibold">
+                {formatTime(turnTime)}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {isAIThinking ? 'Computer thinking...' : `${gameState.currentPlayer === 'white' ? (mode === 'ai' ? 'Your' : "White's") : (mode === 'ai' ? "Computer's" : "Black's")} turn`}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Black Rack (top) */}
         <PieceRack
