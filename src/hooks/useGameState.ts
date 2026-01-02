@@ -66,39 +66,36 @@ export const useGameState = (mode: GameMode = 'local', difficulty: Difficulty = 
 
     switch (piece.type) {
       case 'rook':
-        // Horizontal and vertical moves
-        for (let i = 0; i < 4; i++) {
-          if (i !== col) {
-            const target = board[row][i];
-            if (!target.piece || target.piece.player !== piece.player) {
-              // Check if path is clear
-              const minCol = Math.min(col, i);
-              const maxCol = Math.max(col, i);
-              let blocked = false;
-              for (let c = minCol + 1; c < maxCol; c++) {
-                if (board[row][c].piece) {
-                  blocked = true;
-                  break;
-                }
+        // Horizontal moves (along row)
+        for (const dir of [-1, 1]) {
+          let c = col + dir;
+          while (c >= 0 && c < 4) {
+            const target = board[row][c];
+            if (!target.piece) {
+              moves.push({ row, col: c });
+            } else {
+              if (target.piece.player !== piece.player) {
+                moves.push({ row, col: c });
               }
-              if (!blocked) moves.push({ row, col: i });
+              break; // Stop at any piece (can't move through)
             }
+            c += dir;
           }
-          if (i !== row) {
-            const target = board[i][col];
-            if (!target.piece || target.piece.player !== piece.player) {
-              // Check if path is clear
-              const minRow = Math.min(row, i);
-              const maxRow = Math.max(row, i);
-              let blocked = false;
-              for (let r = minRow + 1; r < maxRow; r++) {
-                if (board[r][col].piece) {
-                  blocked = true;
-                  break;
-                }
+        }
+        // Vertical moves (along column)
+        for (const dir of [-1, 1]) {
+          let r = row + dir;
+          while (r >= 0 && r < 4) {
+            const target = board[r][col];
+            if (!target.piece) {
+              moves.push({ row: r, col });
+            } else {
+              if (target.piece.player !== piece.player) {
+                moves.push({ row: r, col });
               }
-              if (!blocked) moves.push({ row: i, col });
+              break; // Stop at any piece (can't move through)
             }
+            r += dir;
           }
         }
         break;
