@@ -28,8 +28,10 @@ const Game = () => {
   const [gameRecorded, setGameRecorded] = useState(false);
   const [turnTime, setTurnTime] = useState(0);
   const aiMoveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const aiExecuteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const turnStartRef = useRef<number>(Date.now());
   const forceAIMoveRef = useRef<boolean>(false);
+  const pendingAIMoveRef = useRef<ReturnType<typeof getBestMove>>(null);
 
   const isPlayerTurn = mode === 'local' || gameState.currentPlayer === 'white';
 
@@ -66,65 +68,60 @@ const Game = () => {
     }
   }, [gameState.winner, gameRecorded, recordGame, mode, difficulty, playSound]);
 
-  // AI Move - triggers on turn change or force flag
+  // AI Move - combined selection and execution
   useEffect(() => {
-    if (mode === 'ai' && gameState.currentPlayer === 'black' && !gameState.winner && !isAIThinking) {
-      const shouldForce = forceAIMoveRef.current;
-      const delay = shouldForce ? 0 : 500 + Math.random() * 500;
-      
-      setIsAIThinking(true);
-
-      aiMoveTimeoutRef.current = setTimeout(() => {
-        const aiMove = getBestMove(
-          gameState.board,
-          'black',
-          gameState.blackReserve,
-          gameState.phase,
-          difficulty,
-          getValidMoves
-        );
-
-        if (aiMove) {
-          // First select the piece to show visual feedback
-          selectPiece(aiMove.piece, aiMove.from);
-        } else {
-          setIsAIThinking(false);
-        }
-      }, delay);
+    if (mode !== 'ai' || gameState.currentPlayer !== 'black' || gameState.winner || isAIThinking) {
+      return;
     }
+
+    const shouldForce = forceAIMoveRef.current;
+    const delay = shouldForce ? 0 : 500 + Math.random() * 500;
+    
+    setIsAIThinking(true);
+
+    // Step 1: Calculate and select piece
+    aiMoveTimeoutRef.current = setTimeout(() => {
+      const aiMove = getBestMove(
+        gameState.board,
+        'black',
+        gameState.blackReserve,
+        gameState.phase,
+        difficulty,
+        getValidMoves
+      );
+
+      if (aiMove) {
+        // Store the move so we don't need to recalculate
+        pendingAIMoveRef.current = aiMove;
+        // Select the piece for visual feedback
+        selectPiece(aiMove.piece, aiMove.from);
+        
+        // Step 2: Execute the stored move after a short delay
+        aiExecuteTimeoutRef.current = setTimeout(() => {
+          const storedMove = pendingAIMoveRef.current;
+          if (storedMove) {
+            const result = makeMove(storedMove.to);
+            if (result.success) {
+              playSound(result.captured ? 'capture' : storedMove.from ? 'move' : 'place');
+            }
+            pendingAIMoveRef.current = null;
+          }
+          setIsAIThinking(false);
+        }, 300);
+      } else {
+        setIsAIThinking(false);
+      }
+    }, delay);
 
     return () => {
       if (aiMoveTimeoutRef.current) {
         clearTimeout(aiMoveTimeoutRef.current);
       }
+      if (aiExecuteTimeoutRef.current) {
+        clearTimeout(aiExecuteTimeoutRef.current);
+      }
     };
-  }, [gameState.currentPlayer, gameState.winner, mode, isAIThinking, gameState.board, gameState.blackReserve, gameState.phase, difficulty, getValidMoves, getBestMove, selectPiece]);
-
-  // Execute AI move after piece is selected
-  useEffect(() => {
-    if (mode === 'ai' && isAIThinking && gameState.selectedPiece && gameState.currentPlayer === 'black') {
-      const timeoutId = setTimeout(() => {
-        const aiMove = getBestMove(
-          gameState.board,
-          'black',
-          gameState.blackReserve,
-          gameState.phase,
-          difficulty,
-          getValidMoves
-        );
-        
-        if (aiMove) {
-          const result = makeMove(aiMove.to);
-          if (result.success) {
-            playSound(result.captured ? 'capture' : aiMove.from ? 'move' : 'place');
-          }
-        }
-        setIsAIThinking(false);
-      }, 300);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [gameState.selectedPiece, isAIThinking, mode, gameState.currentPlayer]);
+  }, [gameState.currentPlayer, gameState.winner, mode]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
