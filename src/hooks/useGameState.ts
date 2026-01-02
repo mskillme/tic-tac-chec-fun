@@ -49,8 +49,8 @@ export const useGameState = (mode: GameMode = 'local', difficulty: Difficulty = 
   const getValidMoves = useCallback((piece: Piece, from: Position | null, board: Board, phase: 'placement' | 'movement'): Position[] => {
     const moves: Position[] = [];
 
-    if (phase === 'placement' || from === null) {
-      // During placement, any empty cell is valid
+    // Placing from reserve - only empty cells are valid
+    if (from === null) {
       for (let row = 0; row < 4; row++) {
         for (let col = 0; col < 4; col++) {
           if (!board[row][col].piece) {
@@ -61,7 +61,7 @@ export const useGameState = (mode: GameMode = 'local', difficulty: Difficulty = 
       return moves;
     }
 
-    // Movement phase - use chess movement rules
+    // Moving a piece on the board - use chess movement rules (works in both phases)
     const { row, col } = from;
 
     switch (piece.type) {
