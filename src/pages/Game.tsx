@@ -74,6 +74,11 @@ const Game = () => {
       return;
     }
 
+    // Capture current state values to use in timeouts
+    const currentBoard = gameState.board;
+    const currentReserve = gameState.blackReserve;
+    const currentPhase = gameState.phase;
+
     const shouldForce = forceAIMoveRef.current;
     const delay = shouldForce ? 0 : 500 + Math.random() * 500;
     
@@ -82,10 +87,10 @@ const Game = () => {
     // Step 1: Calculate and select piece
     aiMoveTimeoutRef.current = setTimeout(() => {
       const aiMove = getBestMove(
-        gameState.board,
+        currentBoard,
         'black',
-        gameState.blackReserve,
-        gameState.phase,
+        currentReserve,
+        currentPhase,
         difficulty,
         getValidMoves
       );
@@ -121,7 +126,7 @@ const Game = () => {
         clearTimeout(aiExecuteTimeoutRef.current);
       }
     };
-  }, [gameState.currentPlayer, gameState.winner, mode]);
+  }, [gameState.currentPlayer, gameState.winner, gameState.board, gameState.blackReserve, gameState.phase, mode, isAIThinking, difficulty, getBestMove, getValidMoves, selectPiece, makeMove, playSound]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
