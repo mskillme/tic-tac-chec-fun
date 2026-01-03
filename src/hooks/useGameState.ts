@@ -141,15 +141,25 @@ export const useGameState = (mode: GameMode = 'local', difficulty: Difficulty = 
         break;
 
       case 'pawn':
-        // Move one square in any direction (simplified for 4x4 board)
-        const pawnMoves = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]];
-        for (const [dr, dc] of pawnMoves) {
-          const r = row + dr;
-          const c = col + dc;
-          if (r >= 0 && r < 4 && c >= 0 && c < 4) {
-            const target = board[r][c];
-            if (!target.piece || target.piece.player !== piece.player) {
-              moves.push({ row: r, col: c });
+        // Pawns move forward only, capture diagonally forward
+        // White moves "up" (decreasing row), Black moves "down" (increasing row)
+        const direction = piece.player === 'white' ? -1 : 1;
+        
+        // Forward move (only to empty cell)
+        const forwardRow = row + direction;
+        if (forwardRow >= 0 && forwardRow < 4) {
+          if (!board[forwardRow][col].piece) {
+            moves.push({ row: forwardRow, col });
+          }
+          
+          // Diagonal captures (only if enemy piece present)
+          for (const dc of [-1, 1]) {
+            const captureCol = col + dc;
+            if (captureCol >= 0 && captureCol < 4) {
+              const target = board[forwardRow][captureCol];
+              if (target.piece && target.piece.player !== piece.player) {
+                moves.push({ row: forwardRow, col: captureCol });
+              }
             }
           }
         }
