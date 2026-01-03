@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Difficulty } from '@/types/game';
 import { useGameStats } from '@/hooks/useGameStats';
-import { Users, Bot, BarChart3, Crown } from 'lucide-react';
+import { BarChart3, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MainMenu = () => {
@@ -12,9 +12,6 @@ const MainMenu = () => {
   const { stats } = useGameStats();
   const [showDifficulty, setShowDifficulty] = useState(false);
 
-  const handleLocalGame = () => {
-    navigate('/game?mode=local');
-  };
 
   const handleAIGame = (difficulty: Difficulty) => {
     navigate(`/game?mode=ai&difficulty=${difficulty}`);
@@ -69,20 +66,10 @@ const MainMenu = () => {
           {!showDifficulty ? (
             <>
               <Button
-                onClick={handleLocalGame}
+                onClick={() => setShowDifficulty(true)}
                 className="w-full h-16 text-lg font-display bg-primary hover:bg-primary/90"
               >
-                <Users className="mr-3 h-6 w-6" />
-                2 Player Local
-              </Button>
-
-              <Button
-                onClick={() => setShowDifficulty(true)}
-                variant="secondary"
-                className="w-full h-16 text-lg font-display"
-              >
-                <Bot className="mr-3 h-6 w-6" />
-                vs Computer
+                Play Now
               </Button>
             </>
           ) : (
