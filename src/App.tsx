@@ -9,8 +9,24 @@ import Statistics from "./pages/Statistics";
 import Tutorial from "./pages/Tutorial";
 import InteractiveTutorial from "./pages/InteractiveTutorial";
 import NotFound from "./pages/NotFound";
+import { usePageTracking } from "./hooks/usePageTracking";
 
 const queryClient = new QueryClient();
+
+const AppRoutes = () => {
+  usePageTracking();
+  
+  return (
+    <Routes>
+      <Route path="/" element={<MainMenu />} />
+      <Route path="/game" element={<Game />} />
+      <Route path="/stats" element={<Statistics />} />
+      <Route path="/tutorial" element={<Tutorial />} />
+      <Route path="/tutorial/interactive" element={<InteractiveTutorial />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -18,15 +34,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<MainMenu />} />
-          <Route path="/game" element={<Game />} />
-          <Route path="/stats" element={<Statistics />} />
-          <Route path="/tutorial" element={<Tutorial />} />
-          <Route path="/tutorial/interactive" element={<InteractiveTutorial />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppRoutes />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
