@@ -44,19 +44,19 @@ export const useGameAI = () => {
         }
       }
 
-      // Scoring based on line control
+      // Scoring based on line control - prioritize WINNING over blocking
       if (opponentCount === 0) {
-        if (playerCount === 4) score += 1000; // Win
-        else if (playerCount === 3) score += 50;
-        else if (playerCount === 2) score += 10;
-        else if (playerCount === 1) score += 2;
+        if (playerCount === 4) score += 10000; // Win - highest priority!
+        else if (playerCount === 3) score += 200; // One move from winning - very high priority
+        else if (playerCount === 2) score += 20;
+        else if (playerCount === 1) score += 3;
       }
       
       if (playerCount === 0) {
-        if (opponentCount === 4) score -= 1000; // Loss
-        else if (opponentCount === 3) score -= 100; // Urgent block
+        if (opponentCount === 4) score -= 10000; // Loss
+        else if (opponentCount === 3) score -= 150; // Block threat - important but less than our win
         else if (opponentCount === 2) score -= 15;
-        else if (opponentCount === 1) score -= 3;
+        else if (opponentCount === 1) score -= 2;
       }
     }
 
