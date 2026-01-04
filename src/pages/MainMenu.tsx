@@ -79,9 +79,17 @@ const MainMenu = () => {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground">
-          Align 4 pieces in a row to win!
-        </p>
+        <div className="text-center space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Align 4 pieces in a row to win!
+          </p>
+          <button
+            onClick={() => navigate('/privacy')}
+            className="text-xs text-muted-foreground/70 hover:text-muted-foreground underline"
+          >
+            Privacy Policy
+          </button>
+        </div>
       </div>
     </div>
   );
