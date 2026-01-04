@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Crown, Move, Target, Zap } from 'lucide-react';
+import { ArrowLeft, Crown, Gamepad2, Move, Target, Zap } from 'lucide-react';
 
 const Tutorial = () => {
   const navigate = useNavigate();
@@ -30,8 +30,6 @@ const Tutorial = () => {
   ];
 
   const pieceRules = [
-    { piece: '♚', name: 'King', rule: 'Moves one square in any direction' },
-    { piece: '♛', name: 'Queen', rule: 'Moves any number of squares in any direction' },
     { piece: '♜', name: 'Rook', rule: 'Moves any number of squares horizontally or vertically' },
     { piece: '♝', name: 'Bishop', rule: 'Moves any number of squares diagonally' },
     { piece: '♞', name: 'Knight', rule: 'Moves in an L-shape (2+1 squares)' },
@@ -53,6 +51,27 @@ const Tutorial = () => {
           </Button>
           <h1 className="font-display text-3xl text-foreground">How to Play</h1>
         </div>
+
+        {/* Interactive Tutorial CTA */}
+        <Card className="bg-primary/10 border-primary/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <Gamepad2 className="w-6 h-6 text-accent" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-display text-lg text-foreground">Interactive Tutorial</h3>
+                <p className="text-sm text-muted-foreground">Practice moves step-by-step</p>
+              </div>
+              <Button
+                onClick={() => navigate('/tutorial/interactive')}
+                className="bg-primary hover:bg-primary/90"
+              >
+                Start
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Game Steps */}
         <div className="space-y-4">
