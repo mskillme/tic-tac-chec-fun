@@ -8,6 +8,7 @@ import Game from "./pages/Game";
 import Statistics from "./pages/Statistics";
 import Tutorial from "./pages/Tutorial";
 import InteractiveTutorial from "./pages/InteractiveTutorial";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 import { usePageTracking } from "./hooks/usePageTracking";
 
@@ -23,6 +24,7 @@ const AppRoutes = () => {
       <Route path="/stats" element={<Statistics />} />
       <Route path="/tutorial" element={<Tutorial />} />
       <Route path="/tutorial/interactive" element={<InteractiveTutorial />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
