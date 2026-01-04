@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Difficulty } from '@/types/game';
 import { useGameStats } from '@/hooks/useGameStats';
-import { BarChart3, Crown } from 'lucide-react';
+import { BarChart3, Crown, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MainMenu = () => {
@@ -100,15 +100,25 @@ const MainMenu = () => {
           )}
         </div>
 
-        {/* Stats Link */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/stats')}
-          className="w-full text-muted-foreground hover:text-foreground"
-        >
-          <BarChart3 className="mr-2 h-5 w-5" />
-          View Statistics
-        </Button>
+        {/* Menu Links */}
+        <div className="space-y-2">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/tutorial')}
+            className="w-full text-muted-foreground hover:text-foreground"
+          >
+            <HelpCircle className="mr-2 h-5 w-5" />
+            How to Play
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/stats')}
+            className="w-full text-muted-foreground hover:text-foreground"
+          >
+            <BarChart3 className="mr-2 h-5 w-5" />
+            View Statistics
+          </Button>
+        </div>
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground">
