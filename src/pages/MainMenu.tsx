@@ -104,7 +104,7 @@ const MainMenu = () => {
         <div className="space-y-2">
           <Button
             variant="ghost"
-            onClick={() => navigate('/tutorial')}
+            onClick={() => navigate('/tutorial/interactive')}
             className="w-full text-muted-foreground hover:text-foreground"
           >
             <HelpCircle className="mr-2 h-5 w-5" />
