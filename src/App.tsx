@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainMenu from "./pages/MainMenu";
 import Game from "./pages/Game";
+import DailyPuzzle from "./pages/DailyPuzzle";
 import Statistics from "./pages/Statistics";
 import Tutorial from "./pages/Tutorial";
 import InteractiveTutorial from "./pages/InteractiveTutorial";
@@ -21,6 +22,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<MainMenu />} />
       <Route path="/game" element={<Game />} />
+      <Route path="/daily" element={<DailyPuzzle />} />
       <Route path="/stats" element={<Statistics />} />
       <Route path="/tutorial" element={<Tutorial />} />
       <Route path="/tutorial/interactive" element={<InteractiveTutorial />} />

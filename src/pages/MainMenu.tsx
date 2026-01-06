@@ -2,11 +2,14 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useGameStats } from '@/hooks/useGameStats';
-import { BarChart3, Crown, HelpCircle } from 'lucide-react';
+import { useDailyPuzzleStats } from '@/hooks/useDailyPuzzleStats';
+import { BarChart3, Calendar, CheckCircle2, Crown, Flame, HelpCircle } from 'lucide-react';
 
 const MainMenu = () => {
   const navigate = useNavigate();
   const { stats } = useGameStats();
+  const { stats: puzzleStats, isTodayCompleted } = useDailyPuzzleStats();
+  const todayCompleted = isTodayCompleted();
 
   const handlePlayNow = () => {
     navigate('/game?mode=ai&difficulty=hard');
@@ -56,6 +59,29 @@ const MainMenu = () => {
           className="w-full h-16 text-lg font-display bg-primary hover:bg-primary/90"
         >
           Play Now
+        </Button>
+
+        {/* Daily Puzzle Button */}
+        <Button
+          onClick={() => navigate('/daily')}
+          variant="outline"
+          className="w-full h-14 text-base font-display border-accent/50 hover:bg-accent/10 relative"
+        >
+          <Calendar className="mr-2 h-5 w-5 text-accent" />
+          Daily Puzzle
+          {todayCompleted ? (
+            <CheckCircle2 className="ml-2 h-4 w-4 text-green-500" />
+          ) : (
+            <span className="ml-2 px-1.5 py-0.5 text-xs bg-accent text-accent-foreground rounded-full animate-pulse">
+              NEW
+            </span>
+          )}
+          {puzzleStats.currentStreak > 0 && (
+            <span className="absolute -top-2 -right-2 flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-accent text-accent-foreground rounded-full">
+              <Flame className="h-3 w-3" />
+              {puzzleStats.currentStreak}
+            </span>
+          )}
         </Button>
 
         {/* Menu Links */}
