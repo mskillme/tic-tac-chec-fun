@@ -118,6 +118,35 @@ export const useGameAI = () => {
     return newBoard;
   }, []);
 
+  const isWinningMove = useCallback((board: Board, move: AIMove, player: Player): boolean => {
+    const simulatedBoard = simulateMove(board, move);
+    
+    // Check all lines for 4 in a row
+    const lines = [
+      // Rows
+      ...Array(4).fill(null).map((_, row) => 
+        Array(4).fill(null).map((_, col) => ({ row, col }))
+      ),
+      // Columns
+      ...Array(4).fill(null).map((_, col) => 
+        Array(4).fill(null).map((_, row) => ({ row, col }))
+      ),
+      // Diagonals
+      [{ row: 0, col: 0 }, { row: 1, col: 1 }, { row: 2, col: 2 }, { row: 3, col: 3 }],
+      [{ row: 0, col: 3 }, { row: 1, col: 2 }, { row: 2, col: 1 }, { row: 3, col: 0 }],
+    ];
+
+    for (const line of lines) {
+      let count = 0;
+      for (const pos of line) {
+        const piece = simulatedBoard[pos.row][pos.col].piece;
+        if (piece?.player === player) count++;
+      }
+      if (count === 4) return true;
+    }
+    return false;
+  }, [simulateMove]);
+
   const getBestMove = useCallback((
     board: Board,
     player: Player,
@@ -129,6 +158,13 @@ export const useGameAI = () => {
     const moves = getAllMoves(board, player, reserve, phase, getValidMoves);
     
     if (moves.length === 0) return null;
+
+    // ALWAYS check for winning moves first - take them immediately regardless of difficulty
+    for (const move of moves) {
+      if (isWinningMove(board, move, player)) {
+        return move;
+      }
+    }
 
     // Score all moves
     for (const move of moves) {
@@ -160,7 +196,7 @@ export const useGameAI = () => {
     // Hard: always pick best move
 
     return moves[selectedIndex];
-  }, [getAllMoves, simulateMove, evaluatePosition]);
+  }, [getAllMoves, simulateMove, evaluatePosition, isWinningMove]);
 
   return { getBestMove };
 };
