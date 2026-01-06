@@ -80,8 +80,8 @@ export const useGameAI = () => {
   ): AIMove[] => {
     const moves: AIMove[] = [];
 
-    if (phase === 'placement' && reserve.length > 0) {
-      // Placement moves from reserve
+    // Placement moves from reserve (allowed even during movement phase)
+    if (reserve.length > 0) {
       for (const piece of reserve) {
         const validMoves = getValidMoves(piece, null, board, phase);
         for (const to of validMoves) {
