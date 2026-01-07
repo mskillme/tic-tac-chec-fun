@@ -1,21 +1,22 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useDailyPuzzle } from '@/hooks/useDailyPuzzle';
 import { useDailyPuzzleStats } from '@/hooks/useDailyPuzzleStats';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useHaptics } from '@/hooks/useHaptics';
 import { GameBoard } from '@/components/game/GameBoard';
 import { PieceRack } from '@/components/game/PieceRack';
-import { Board, Piece, Position, BoardCell } from '@/types/game';
+import { Board, Piece, Position } from '@/types/game';
 import { ArrowLeft, Calendar, CheckCircle2, Flame, Lightbulb, RotateCcw } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 const DailyPuzzle = () => {
   const navigate = useNavigate();
   const puzzle = useDailyPuzzle();
   const { stats, isTodayCompleted, markCompleted } = useDailyPuzzleStats();
   const { playSound } = useSoundEffects();
+  const { vibrate } = useHaptics();
 
   const [board, setBoard] = useState<Board>(puzzle.board);
   const [playerReserve, setPlayerReserve] = useState<Piece[]>(puzzle.playerReserve);
@@ -82,9 +83,10 @@ const DailyPuzzle = () => {
     if (solved) return;
     
     playSound('select');
+    vibrate('select');
     setSelectedPiece({ piece, position: null });
     setValidMoves(getValidMoves(piece, null, board));
-  }, [board, getValidMoves, playSound, solved]);
+  }, [board, getValidMoves, playSound, vibrate, solved]);
 
   const handleCellClick = useCallback((position: Position) => {
     if (solved) return;
@@ -102,6 +104,7 @@ const DailyPuzzle = () => {
       setMoveCount(prev => prev + 1);
       
       playSound('place');
+      vibrate('place');
       
       // Check for win
       const winLine = checkWinner(newBoard);
@@ -110,13 +113,14 @@ const DailyPuzzle = () => {
         setSolved(true);
         markCompleted();
         playSound('win');
+        vibrate('win');
       }
     } else {
       // Deselect
       setSelectedPiece(null);
       setValidMoves([]);
     }
-  }, [board, selectedPiece, validMoves, checkWinner, markCompleted, playSound, solved]);
+  }, [board, selectedPiece, validMoves, checkWinner, markCompleted, playSound, vibrate, solved]);
 
   const handleReset = useCallback(() => {
     setBoard(puzzle.board);

@@ -4,6 +4,7 @@ import { useGameState } from '@/hooks/useGameState';
 import { useGameAI } from '@/hooks/useGameAI';
 import { useGameStats } from '@/hooks/useGameStats';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
+import { useHaptics } from '@/hooks/useHaptics';
 import { GameBoard } from '@/components/game/GameBoard';
 import { PieceRack } from '@/components/game/PieceRack';
 import { GameStatus } from '@/components/game/GameStatus';
@@ -21,9 +22,10 @@ const Game = () => {
   const { gameState, selectPiece, deselectPiece, makeMove, resetGame, getValidMoves } = useGameState(mode, difficulty);
   const { getBestMove } = useGameAI();
   const { recordGame } = useGameStats();
-  const { playSound, setEnabled, isEnabled } = useSoundEffects();
+  const { playSound, setEnabled: setSoundEnabled, isEnabled } = useSoundEffects();
+  const { vibrate, setEnabled: setHapticsEnabled } = useHaptics();
   
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [feedbackEnabled, setFeedbackEnabled] = useState(true);
   const [isAIThinking, setIsAIThinking] = useState(false);
   const isAIThinkingRef = useRef(false);
   const [gameRecorded, setGameRecorded] = useState(false);
@@ -70,7 +72,9 @@ const Game = () => {
     if (gameState.winner && !gameRecorded) {
       recordGame(gameState.winner, 'white', mode, mode === 'ai' ? difficulty : undefined);
       setGameRecorded(true);
-      playSound(gameState.winner === 'white' ? 'win' : 'lose');
+      const sound = gameState.winner === 'white' ? 'win' : 'lose';
+      playSound(sound);
+      vibrate(sound);
     }
   }, [gameState.winner, gameRecorded, recordGame, mode, difficulty, playSound]);
 
@@ -114,7 +118,9 @@ const Game = () => {
           if (storedMove) {
             const result = makeMove(storedMove.to);
             if (result.success) {
-              playSound(result.captured ? 'capture' : storedMove.from ? 'move' : 'place');
+              const sound = result.captured ? 'capture' : storedMove.from ? 'move' : 'place';
+              playSound(sound);
+              vibrate(sound);
             }
             pendingAIMoveRef.current = null;
           }
@@ -150,6 +156,7 @@ const Game = () => {
     selectPiece,
     makeMove,
     playSound,
+    vibrate,
   ]);
 
   const formatTime = (seconds: number) => {
@@ -168,7 +175,9 @@ const Game = () => {
     if (selectedPiece && validMoves.some(m => m.row === position.row && m.col === position.col)) {
       const result = makeMove(position);
       if (result.success) {
-        playSound(result.captured ? 'capture' : selectedPiece.position ? 'move' : 'place');
+        const sound = result.captured ? 'capture' : selectedPiece.position ? 'move' : 'place';
+        playSound(sound);
+        vibrate(sound);
       }
       return;
     }
@@ -177,18 +186,20 @@ const Game = () => {
     if (cellPiece && cellPiece.player === gameState.currentPlayer) {
       selectPiece(cellPiece, position);
       playSound('select');
+      vibrate('select');
       return;
     }
 
     // Otherwise deselect
     deselectPiece();
-  }, [gameState, isPlayerTurn, isAIThinking, selectPiece, deselectPiece, makeMove, playSound]);
+  }, [gameState, isPlayerTurn, isAIThinking, selectPiece, deselectPiece, makeMove, playSound, vibrate]);
 
   const handleReserveSelect = useCallback((piece: typeof gameState.whiteReserve[0]) => {
     if (!isPlayerTurn || gameState.winner || isAIThinking) return;
     selectPiece(piece, null);
     playSound('select');
-  }, [isPlayerTurn, gameState.winner, isAIThinking, selectPiece, playSound]);
+    vibrate('select');
+  }, [isPlayerTurn, gameState.winner, isAIThinking, selectPiece, playSound, vibrate]);
 
   const handleReset = () => {
     resetGame();
@@ -196,10 +207,11 @@ const Game = () => {
     setIsAIThinking(false);
   };
 
-  const handleToggleSound = () => {
-    const newState = !soundEnabled;
+  const handleToggleFeedback = () => {
+    const newState = !feedbackEnabled;
+    setFeedbackEnabled(newState);
     setSoundEnabled(newState);
-    setEnabled(newState);
+    setHapticsEnabled(newState);
   };
 
   const selectedPosition = gameState.selectedPiece?.position ?? null;
@@ -219,8 +231,8 @@ const Game = () => {
           <GameControls
             onReset={handleReset}
             onHome={() => navigate('/')}
-            soundEnabled={soundEnabled}
-            onToggleSound={handleToggleSound}
+            soundEnabled={feedbackEnabled}
+            onToggleSound={handleToggleFeedback}
           />
         </div>
 
