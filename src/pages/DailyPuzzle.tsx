@@ -61,11 +61,11 @@ const DailyPuzzle = () => {
 
   const [winningLine, setWinningLine] = useState<Position[] | null>(null);
 
-  // Get valid moves for placement (all empty cells)
+  // Get valid moves for piece - supports both placement and movement
   const getValidMoves = useCallback((piece: Piece, from: Position | null, currentBoard: Board): Position[] => {
     const moves: Position[] = [];
     
-    // For puzzle, only allow placement from reserve to empty cells
+    // Placing from reserve - all empty cells are valid
     if (!from) {
       for (let row = 0; row < 4; row++) {
         for (let col = 0; col < 4; col++) {
@@ -74,6 +74,98 @@ const DailyPuzzle = () => {
           }
         }
       }
+      return moves;
+    }
+    
+    // Moving a piece on the board - use chess movement rules
+    const { row, col } = from;
+
+    switch (piece.type) {
+      case 'rook':
+        for (const dir of [-1, 1]) {
+          let c = col + dir;
+          while (c >= 0 && c < 4) {
+            if (!currentBoard[row][c].piece) {
+              moves.push({ row, col: c });
+            } else {
+              if (currentBoard[row][c].piece!.player !== piece.player) {
+                moves.push({ row, col: c });
+              }
+              break;
+            }
+            c += dir;
+          }
+        }
+        for (const dir of [-1, 1]) {
+          let r = row + dir;
+          while (r >= 0 && r < 4) {
+            if (!currentBoard[r][col].piece) {
+              moves.push({ row: r, col });
+            } else {
+              if (currentBoard[r][col].piece!.player !== piece.player) {
+                moves.push({ row: r, col });
+              }
+              break;
+            }
+            r += dir;
+          }
+        }
+        break;
+
+      case 'bishop':
+        const diagonals = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+        for (const [dr, dc] of diagonals) {
+          let r = row + dr;
+          let c = col + dc;
+          while (r >= 0 && r < 4 && c >= 0 && c < 4) {
+            if (!currentBoard[r][c].piece) {
+              moves.push({ row: r, col: c });
+            } else {
+              if (currentBoard[r][c].piece!.player !== piece.player) {
+                moves.push({ row: r, col: c });
+              }
+              break;
+            }
+            r += dr;
+            c += dc;
+          }
+        }
+        break;
+
+      case 'knight':
+        const knightMoves = [
+          [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+          [1, -2], [1, 2], [2, -1], [2, 1]
+        ];
+        for (const [dr, dc] of knightMoves) {
+          const r = row + dr;
+          const c = col + dc;
+          if (r >= 0 && r < 4 && c >= 0 && c < 4) {
+            if (!currentBoard[r][c].piece || currentBoard[r][c].piece!.player !== piece.player) {
+              moves.push({ row: r, col: c });
+            }
+          }
+        }
+        break;
+
+      case 'pawn':
+        const direction = piece.player === 'white' ? -1 : 1;
+        const forwardRow = row + direction;
+        if (forwardRow >= 0 && forwardRow < 4) {
+          if (!currentBoard[forwardRow][col].piece) {
+            moves.push({ row: forwardRow, col });
+          }
+          for (const dc of [-1, 1]) {
+            const captureCol = col + dc;
+            if (captureCol >= 0 && captureCol < 4) {
+              if (currentBoard[forwardRow][captureCol].piece?.player !== piece.player &&
+                  currentBoard[forwardRow][captureCol].piece) {
+                moves.push({ row: forwardRow, col: captureCol });
+              }
+            }
+          }
+        }
+        break;
     }
     
     return moves;
@@ -88,22 +180,54 @@ const DailyPuzzle = () => {
     setValidMoves(getValidMoves(piece, null, board));
   }, [board, getValidMoves, playSound, vibrate, solved]);
 
+  // Handle selecting a piece on the board for movement
+  const handleBoardPieceSelect = useCallback((position: Position) => {
+    if (solved) return;
+    
+    const piece = board[position.row][position.col].piece;
+    if (!piece || piece.player !== 'white') return;
+    
+    playSound('select');
+    vibrate('select');
+    setSelectedPiece({ piece, position });
+    setValidMoves(getValidMoves(piece, position, board));
+  }, [board, getValidMoves, playSound, vibrate, solved]);
+
   const handleCellClick = useCallback((position: Position) => {
     if (solved) return;
     
+    const clickedCell = board[position.row][position.col];
+    
+    // If clicking on a white piece (not already selected), select it for movement
+    if (clickedCell.piece?.player === 'white' && 
+        (!selectedPiece || selectedPiece.position?.row !== position.row || selectedPiece.position?.col !== position.col)) {
+      handleBoardPieceSelect(position);
+      return;
+    }
+    
     if (selectedPiece && validMoves.some(m => m.row === position.row && m.col === position.col)) {
-      // Place the piece
-      const newBoard = board.map(row => row.map(cell => ({ ...cell })));
+      const newBoard = board.map(row => row.map(cell => ({ ...cell, piece: cell.piece ? { ...cell.piece } : null })));
+      
+      // Handle capture - captured piece goes back to opponent (just remove for puzzle)
+      const capturedPiece = newBoard[position.row][position.col].piece;
+      
+      // Remove piece from old position if moving on board
+      if (selectedPiece.position) {
+        newBoard[selectedPiece.position.row][selectedPiece.position.col].piece = null;
+      } else {
+        // Remove from reserve if placing
+        setPlayerReserve(prev => prev.filter(p => p.id !== selectedPiece.piece.id));
+      }
+      
+      // Place piece at new position
       newBoard[position.row][position.col].piece = selectedPiece.piece;
       
-      // Remove from reserve
-      setPlayerReserve(prev => prev.filter(p => p.id !== selectedPiece.piece.id));
       setBoard(newBoard);
       setSelectedPiece(null);
       setValidMoves([]);
       setMoveCount(prev => prev + 1);
       
-      playSound('place');
+      playSound(capturedPiece ? 'capture' : 'place');
       vibrate('place');
       
       // Check for win
@@ -120,7 +244,7 @@ const DailyPuzzle = () => {
       setSelectedPiece(null);
       setValidMoves([]);
     }
-  }, [board, selectedPiece, validMoves, checkWinner, markCompleted, playSound, vibrate, solved]);
+  }, [board, selectedPiece, validMoves, checkWinner, markCompleted, playSound, vibrate, solved, handleBoardPieceSelect]);
 
   const handleReset = useCallback(() => {
     setBoard(puzzle.board);
@@ -174,7 +298,9 @@ const DailyPuzzle = () => {
 
         {/* Instructions */}
         <p className="text-center text-muted-foreground text-sm">
-          Place your piece to complete a line of 4!
+          {playerReserve.length > 0 
+            ? 'Place or move your pieces to complete a line of 4!'
+            : 'Move your pieces strategically to complete a line of 4!'}
         </p>
 
         {/* Player Reserve */}
