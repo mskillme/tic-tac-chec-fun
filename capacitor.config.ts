@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.8547566b29244a6f8704cfcf9a0e8480',
+  appId: 'com.tictacchec.app',
   appName: 'Tic Tac Chec',
   webDir: 'dist',
   server: {
