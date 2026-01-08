@@ -12,11 +12,13 @@ import InteractiveTutorial from "./pages/InteractiveTutorial";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 import { usePageTracking } from "./hooks/usePageTracking";
+import { useDailyNotifications } from "./hooks/useDailyNotifications";
 
 const queryClient = new QueryClient();
 
 const AppRoutes = () => {
   usePageTracking();
+  useDailyNotifications();
   
   return (
     <Routes>

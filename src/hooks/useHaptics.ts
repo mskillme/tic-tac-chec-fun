@@ -1,38 +1,48 @@
 import { useCallback, useRef } from 'react';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
 type HapticType = 'place' | 'move' | 'capture' | 'win' | 'lose' | 'select' | 'invalid';
-
-// Vibration patterns (in milliseconds)
-const HAPTIC_PATTERNS: Record<HapticType, number | number[]> = {
-  select: 10,           // Light tap
-  place: 25,            // Firm tap
-  move: [15, 50, 15],   // Double tap
-  capture: 50,          // Strong pulse
-  win: [50, 50, 50, 50, 100], // Celebration
-  lose: 200,            // Long buzz
-  invalid: [100, 50, 100], // Error shake
-};
 
 export const useHaptics = () => {
   const enabledRef = useRef(true);
 
-  const isSupported = useCallback(() => {
-    return 'vibrate' in navigator;
-  }, []);
-
-  const vibrate = useCallback((type: HapticType) => {
-    if (!enabledRef.current || !isSupported()) return;
+  const vibrate = useCallback(async (type: HapticType) => {
+    if (!enabledRef.current) return;
 
     try {
-      navigator.vibrate(HAPTIC_PATTERNS[type]);
+      switch (type) {
+        case 'select':
+          await Haptics.selectionChanged();
+          break;
+        case 'place':
+          await Haptics.impact({ style: ImpactStyle.Medium });
+          break;
+        case 'move':
+          await Haptics.impact({ style: ImpactStyle.Light });
+          break;
+        case 'capture':
+          await Haptics.impact({ style: ImpactStyle.Heavy });
+          break;
+        case 'win':
+          await Haptics.notification({ type: NotificationType.Success });
+          break;
+        case 'lose':
+          await Haptics.notification({ type: NotificationType.Error });
+          break;
+        case 'invalid':
+          await Haptics.notification({ type: NotificationType.Warning });
+          break;
+      }
     } catch {
-      // Silently fail if vibration not available
+      // Silently fail if haptics not available (web browser)
     }
-  }, [isSupported]);
+  }, []);
 
   const setEnabled = useCallback((enabled: boolean) => {
     enabledRef.current = enabled;
   }, []);
+
+  const isSupported = useCallback(() => true, []);
 
   return { vibrate, setEnabled, isEnabled: () => enabledRef.current, isSupported };
 };
