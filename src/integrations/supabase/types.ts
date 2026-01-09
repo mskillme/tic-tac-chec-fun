@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      leaderboard: {
+        Row: {
+          best_streak: number
+          created_at: string | null
+          device_id: string
+          id: string
+          initials: string
+          last_played_at: string | null
+          total_games: number
+          total_wins: number
+        }
+        Insert: {
+          best_streak?: number
+          created_at?: string | null
+          device_id: string
+          id?: string
+          initials: string
+          last_played_at?: string | null
+          total_games?: number
+          total_wins?: number
+        }
+        Update: {
+          best_streak?: number
+          created_at?: string | null
+          device_id?: string
+          id?: string
+          initials?: string
+          last_played_at?: string | null
+          total_games?: number
+          total_wins?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

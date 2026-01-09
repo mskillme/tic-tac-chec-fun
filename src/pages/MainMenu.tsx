@@ -3,12 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useGameStats } from '@/hooks/useGameStats';
 import { useDailyPuzzleStats } from '@/hooks/useDailyPuzzleStats';
-import { BarChart3, Calendar, CheckCircle2, Crown, Flame, HelpCircle } from 'lucide-react';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { BarChart3, Calendar, CheckCircle2, Crown, Flame, HelpCircle, Trophy } from 'lucide-react';
 
 const MainMenu = () => {
   const navigate = useNavigate();
   const { stats } = useGameStats();
   const { stats: puzzleStats, isTodayCompleted } = useDailyPuzzleStats();
+  const { playerRank, hasInitials } = useLeaderboard();
   const todayCompleted = isTodayCompleted();
 
   const handlePlayNow = () => {
@@ -80,6 +82,26 @@ const MainMenu = () => {
             <span className="absolute -top-2 -right-2 flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-accent text-accent-foreground rounded-full">
               <Flame className="h-3 w-3" />
               {puzzleStats.currentStreak}
+            </span>
+          )}
+        </Button>
+
+        {/* Leaderboard Button */}
+        <Button
+          onClick={() => navigate('/leaderboard')}
+          variant="outline"
+          className="w-full h-12 text-base font-display border-primary/50 hover:bg-primary/10 relative"
+        >
+          <Trophy className="mr-2 h-5 w-5 text-primary" />
+          Global Leaderboard
+          {playerRank && (
+            <span className="ml-2 px-2 py-0.5 text-xs bg-primary/20 text-primary rounded-full">
+              #{playerRank.rank}
+            </span>
+          )}
+          {!hasInitials && (
+            <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-xs bg-accent text-accent-foreground rounded-full animate-pulse">
+              JOIN
             </span>
           )}
         </Button>
