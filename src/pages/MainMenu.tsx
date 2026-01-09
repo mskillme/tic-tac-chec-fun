@@ -61,14 +61,14 @@ const MainMenu = () => {
           Play Now
         </Button>
 
-        {/* Daily Puzzle Button */}
+        {/* Daily 30 Second Challenge Button */}
         <Button
           onClick={() => navigate('/daily')}
           variant="outline"
           className="w-full h-14 text-base font-display border-accent/50 hover:bg-accent/10 relative"
         >
           <Calendar className="mr-2 h-5 w-5 text-accent" />
-          Daily Puzzle
+          Daily 30 Second Challenge
           {todayCompleted ? (
             <CheckCircle2 className="ml-2 h-4 w-4 text-green-500" />
           ) : (
