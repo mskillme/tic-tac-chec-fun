@@ -3,12 +3,14 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGameState } from '@/hooks/useGameState';
 import { useGameAI } from '@/hooks/useGameAI';
 import { useGameStats } from '@/hooks/useGameStats';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 import { useHaptics } from '@/hooks/useHaptics';
 import { GameBoard } from '@/components/game/GameBoard';
 import { PieceRack } from '@/components/game/PieceRack';
 import { GameStatus } from '@/components/game/GameStatus';
 import { GameControls } from '@/components/game/GameControls';
+import { InitialsInput } from '@/components/InitialsInput';
 import { Button } from '@/components/ui/button';
 import { Clock } from 'lucide-react';
 import { Position, GameMode, Difficulty } from '@/types/game';
@@ -21,7 +23,8 @@ const Game = () => {
 
   const { gameState, selectPiece, deselectPiece, makeMove, resetGame, getValidMoves } = useGameState(mode, difficulty);
   const { getBestMove } = useGameAI();
-  const { recordGame } = useGameStats();
+  const { stats, recordGame } = useGameStats();
+  const { hasInitials, saveInitials, syncStats } = useLeaderboard();
   const { playSound, setEnabled: setSoundEnabled, isEnabled } = useSoundEffects();
   const { vibrate, setEnabled: setHapticsEnabled } = useHaptics();
   
@@ -30,6 +33,8 @@ const Game = () => {
   const isAIThinkingRef = useRef(false);
   const [gameRecorded, setGameRecorded] = useState(false);
   const [turnTime, setTurnTime] = useState(0);
+  const [showInitialsPrompt, setShowInitialsPrompt] = useState(false);
+  const [pendingWinSync, setPendingWinSync] = useState(false);
   const aiMoveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const aiExecuteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const turnStartRef = useRef<number>(Date.now());
@@ -72,11 +77,43 @@ const Game = () => {
     if (gameState.winner && !gameRecorded) {
       recordGame(gameState.winner, 'white', mode, mode === 'ai' ? difficulty : undefined);
       setGameRecorded(true);
+      
       const sound = gameState.winner === 'white' ? 'win' : 'lose';
       playSound(sound);
       vibrate(sound);
+
+      // If player won, sync to leaderboard
+      if (gameState.winner === 'white') {
+        if (hasInitials) {
+          // Sync immediately - use stats + 1 since recordGame just ran
+          syncStats(stats.wins + 1, stats.gamesPlayed + 1, Math.max(stats.bestStreak, stats.winStreak + 1));
+        } else {
+          // Prompt for initials
+          setPendingWinSync(true);
+          setShowInitialsPrompt(true);
+        }
+      }
     }
-  }, [gameState.winner, gameRecorded, recordGame, mode, difficulty, playSound]);
+  }, [gameState.winner, gameRecorded, recordGame, mode, difficulty, playSound, vibrate, hasInitials, syncStats, stats]);
+
+  // Handle initials submission
+  const handleInitialsSubmit = useCallback((initials: string) => {
+    saveInitials(initials);
+    setShowInitialsPrompt(false);
+    
+    if (pendingWinSync) {
+      // Sync win after setting initials - need to wait a tick for state to update
+      setTimeout(() => {
+        syncStats(stats.wins + 1, stats.gamesPlayed + 1, Math.max(stats.bestStreak, stats.winStreak + 1));
+      }, 100);
+      setPendingWinSync(false);
+    }
+  }, [saveInitials, pendingWinSync, syncStats, stats]);
+
+  const handleInitialsCancel = useCallback(() => {
+    setShowInitialsPrompt(false);
+    setPendingWinSync(false);
+  }, []);
 
   // AI Move - combined selection and execution
   useEffect(() => {
@@ -298,6 +335,13 @@ const Game = () => {
           </div>
         )}
       </div>
+
+      {/* Initials Input Dialog */}
+      <InitialsInput
+        open={showInitialsPrompt}
+        onSubmit={handleInitialsSubmit}
+        onCancel={handleInitialsCancel}
+      />
     </div>
   );
 };
