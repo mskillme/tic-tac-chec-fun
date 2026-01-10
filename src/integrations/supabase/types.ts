@@ -49,7 +49,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      leaderboard_public: {
+        Row: {
+          best_streak: number | null
+          created_at: string | null
+          id: string | null
+          initials: string | null
+          last_played_at: string | null
+          total_games: number | null
+          total_wins: number | null
+        }
+        Insert: {
+          best_streak?: number | null
+          created_at?: string | null
+          id?: string | null
+          initials?: string | null
+          last_played_at?: string | null
+          total_games?: number | null
+          total_wins?: number | null
+        }
+        Update: {
+          best_streak?: number | null
+          created_at?: string | null
+          id?: string | null
+          initials?: string | null
+          last_played_at?: string | null
+          total_games?: number | null
+          total_wins?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
