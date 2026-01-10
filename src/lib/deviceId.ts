@@ -1,12 +1,26 @@
-const DEVICE_ID_KEY = 'tic-tac-chec-device-id';
+import { supabase } from '@/integrations/supabase/client';
 
-export const getDeviceId = (): string => {
-  let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+// Get or create anonymous user session
+// This replaces the old device ID system with proper anonymous authentication
+export const getDeviceId = async (): Promise<string> => {
+  // Check for existing session
+  const { data: { session } } = await supabase.auth.getSession();
   
-  if (!deviceId) {
-    deviceId = crypto.randomUUID();
-    localStorage.setItem(DEVICE_ID_KEY, deviceId);
+  if (session?.user?.id) {
+    return session.user.id;
   }
   
-  return deviceId;
+  // Sign in anonymously if no session exists
+  const { data, error } = await supabase.auth.signInAnonymously();
+  
+  if (error) {
+    console.error('Error signing in anonymously:', error);
+    throw new Error('Failed to authenticate');
+  }
+  
+  if (data.user?.id) {
+    return data.user.id;
+  }
+  
+  throw new Error('Failed to get user ID');
 };
