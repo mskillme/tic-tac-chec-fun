@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 // Get or create anonymous user session
 // This replaces the old device ID system with proper anonymous authentication
@@ -14,7 +15,7 @@ export const getDeviceId = async (): Promise<string> => {
   const { data, error } = await supabase.auth.signInAnonymously();
   
   if (error) {
-    console.error('Error signing in anonymously:', error);
+    logger.error('Error signing in anonymously', error);
     throw new Error('Failed to authenticate');
   }
   
