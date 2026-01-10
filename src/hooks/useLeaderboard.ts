@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getDeviceId } from '@/lib/deviceId';
 import { LeaderboardEntry, PlayerRank } from '@/types/leaderboard';
@@ -10,21 +10,40 @@ export const useLeaderboard = () => {
   const [playerRank, setPlayerRank] = useState<PlayerRank | null>(null);
   const [loading, setLoading] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
-  const [initials, setInitials] = useState<string | null>(() => {
-    return localStorage.getItem(INITIALS_KEY);
-  });
+  const [initials, setInitials] = useState<string | null>(null);
+  const initialized = useRef(false);
+
+  // Initialize from localStorage (synchronously after mount)
+  useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      const storedInitials = localStorage.getItem(INITIALS_KEY);
+      if (storedInitials) {
+        setInitials(storedInitials);
+      }
+    }
+  }, []);
 
   // Initialize anonymous auth and get device ID
   useEffect(() => {
+    let isMounted = true;
+    
     const initAuth = async () => {
       try {
         const id = await getDeviceId();
-        setDeviceId(id);
+        if (isMounted) {
+          setDeviceId(id);
+        }
       } catch (error) {
         console.error('Error initializing auth:', error);
       }
     };
+    
     initAuth();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const fetchLeaderboard = useCallback(async () => {
