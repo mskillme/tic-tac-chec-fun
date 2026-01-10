@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getDeviceId } from '@/lib/deviceId';
+import { logger } from '@/lib/logger';
 import { LeaderboardEntry, PlayerRank } from '@/types/leaderboard';
 
 const INITIALS_KEY = 'tic-tac-chec-initials';
@@ -35,7 +36,7 @@ export const useLeaderboard = () => {
           setDeviceId(id);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        logger.error('Error initializing auth', error);
       }
     };
     
@@ -49,30 +50,53 @@ export const useLeaderboard = () => {
   const fetchLeaderboard = useCallback(async () => {
     setLoading(true);
     try {
+      // Use the public view which excludes device_id for security
       const { data, error } = await supabase
-        .from('leaderboard')
+        .from('leaderboard_public')
         .select('*')
         .order('total_wins', { ascending: false })
         .limit(100);
 
       if (error) throw error;
 
-      setLeaderboard(data || []);
+      // Map view data to LeaderboardEntry type (device_id will be undefined from view)
+      const entries: LeaderboardEntry[] = (data || []).map(entry => ({
+        ...entry,
+        device_id: '', // Not exposed by view
+      }));
 
-      // Find current player's rank
+      setLeaderboard(entries);
+
+      // For player rank, we need to query the main table (RLS allows user to see own entry)
       if (deviceId) {
-        const playerIndex = data?.findIndex(entry => entry.device_id === deviceId);
-        if (playerIndex !== undefined && playerIndex >= 0) {
-          setPlayerRank({
-            rank: playerIndex + 1,
-            entry: data![playerIndex],
-          });
+        const { data: ownEntry, error: ownError } = await supabase
+          .from('leaderboard')
+          .select('*')
+          .eq('device_id', deviceId)
+          .single();
+
+        if (!ownError && ownEntry) {
+          // Find player's rank based on their total_wins
+          const playerIndex = entries.findIndex(entry => entry.id === ownEntry.id);
+          if (playerIndex >= 0) {
+            setPlayerRank({
+              rank: playerIndex + 1,
+              entry: ownEntry,
+            });
+          } else {
+            // Player might be outside top 100, calculate approximate rank
+            const playersAbove = entries.filter(e => e.total_wins > ownEntry.total_wins).length;
+            setPlayerRank({
+              rank: playersAbove + 1,
+              entry: ownEntry,
+            });
+          }
         } else {
           setPlayerRank(null);
         }
       }
     } catch (error) {
-      console.error('Error fetching leaderboard:', error);
+      logger.error('Error fetching leaderboard', error);
     } finally {
       setLoading(false);
     }
@@ -88,13 +112,26 @@ export const useLeaderboard = () => {
   const recordWin = useCallback(async (wins: number, games: number, bestStreak: number) => {
     if (!initials || !deviceId) return;
 
+    // Sanitize and validate initials (defense-in-depth with database constraint)
+    const sanitizedInitials = initials.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+    if (sanitizedInitials.length !== 3) {
+      logger.error('Invalid initials format');
+      return;
+    }
+
+    // Validate numeric inputs (defense-in-depth with database trigger)
+    if (wins < 0 || games < 0 || bestStreak < 0 || wins > games || bestStreak > wins) {
+      logger.error('Invalid stats values');
+      return;
+    }
+
     try {
       // Try to upsert the entry
       const { error } = await supabase
         .from('leaderboard')
         .upsert({
           device_id: deviceId,
-          initials: initials,
+          initials: sanitizedInitials,
           total_wins: wins,
           total_games: games,
           best_streak: bestStreak,
@@ -108,7 +145,7 @@ export const useLeaderboard = () => {
       // Refresh leaderboard after recording
       await fetchLeaderboard();
     } catch (error) {
-      console.error('Error recording win:', error);
+      logger.error('Error recording win', error);
     }
   }, [deviceId, initials, fetchLeaderboard]);
 
