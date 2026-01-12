@@ -51,11 +51,12 @@ export const ChessPiece = ({
       style={{
         color: isWhite ? 'hsl(var(--piece-white))' : 'hsl(var(--piece-black))',
         WebkitTextStroke: isWhite 
-          ? '1px hsl(var(--piece-white-stroke))'
-          : '1.5px hsl(var(--piece-black-stroke))',
+          ? '1.5px hsl(var(--piece-white-stroke))'
+          : '2px hsl(var(--piece-black-stroke))',
         textShadow: isWhite 
-          ? '1px 1px 2px hsl(var(--piece-white-stroke) / 0.5)'
-          : '1px 1px 2px hsl(var(--piece-black-stroke) / 0.5)',
+          ? '0 2px 4px hsl(0 0% 0% / 0.4)'
+          : '0 0 8px hsl(var(--piece-black-stroke) / 0.6), 0 2px 4px hsl(0 0% 0% / 0.5)',
+        paintOrder: 'stroke fill',
       }}
     >
       {symbol}
