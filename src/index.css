@@ -48,11 +48,11 @@
     --board-border: 25 40% 25%;
     --board-highlight: 42 90% 55%;
 
-    /* Piece colors */
-    --piece-white: 35 25% 88%;
-    --piece-white-stroke: 30 20% 60%;
-    --piece-black: 25 30% 18%;
-    --piece-black-stroke: 25 25% 35%;
+    /* Piece colors - high contrast for visibility */
+    --piece-white: 40 30% 95%;
+    --piece-white-stroke: 25 35% 20%;
+    --piece-black: 20 25% 12%;
+    --piece-black-stroke: 40 35% 88%;
 
     /* Game states */
     --valid-move: 120 50% 40%;
