@@ -10,11 +10,12 @@ interface ChessPieceProps {
   className?: string;
 }
 
-const pieceSymbols: Record<Piece['type'], { white: string; black: string }> = {
-  rook: { white: '♖', black: '♜' },
-  bishop: { white: '♗', black: '♝' },
-  knight: { white: '♘', black: '♞' },
-  pawn: { white: '♙', black: '♟' },
+// Use outlined symbols for all pieces - differentiate by CSS color
+const pieceSymbols: Record<Piece['type'], string> = {
+  rook: '♖',
+  bishop: '♗',
+  knight: '♘',
+  pawn: '♙',
 };
 
 const sizeClasses = {
@@ -31,7 +32,7 @@ export const ChessPiece = ({
   animated = false,
   className,
 }: ChessPieceProps) => {
-  const symbol = pieceSymbols[piece.type][piece.player];
+  const symbol = pieceSymbols[piece.type];
   const isWhite = piece.player === 'white';
 
   return (
@@ -48,9 +49,13 @@ export const ChessPiece = ({
         className
       )}
       style={{
+        color: isWhite ? 'hsl(var(--piece-white))' : 'hsl(var(--piece-black))',
+        WebkitTextStroke: isWhite 
+          ? '1px hsl(var(--piece-white-stroke))'
+          : '1.5px hsl(var(--piece-black-stroke))',
         textShadow: isWhite 
-          ? '1px 1px 2px hsl(var(--piece-white-stroke)), -1px -1px 2px hsl(var(--piece-white-stroke))'
-          : '1px 1px 2px hsl(var(--piece-black-stroke)), -1px -1px 2px hsl(var(--piece-black-stroke))',
+          ? '1px 1px 2px hsl(var(--piece-white-stroke) / 0.5)'
+          : '1px 1px 2px hsl(var(--piece-black-stroke) / 0.5)',
       }}
     >
       {symbol}
