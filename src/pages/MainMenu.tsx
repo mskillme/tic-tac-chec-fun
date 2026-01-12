@@ -24,7 +24,7 @@ const MainMenu = () => {
         <div className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="relative">
-              <Crown className="w-16 h-16 text-accent animate-pulse-gold" />
+              <Crown className="w-16 h-16 text-accent animate-pulse-gold-icon" />
             </div>
           </div>
           <h1 className="font-display text-4xl sm:text-5xl text-foreground tracking-wide">

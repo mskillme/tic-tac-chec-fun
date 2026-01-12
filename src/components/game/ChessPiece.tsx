@@ -43,7 +43,7 @@ export const ChessPiece = ({
         'select-none piece-shadow',
         sizeClasses[size],
         isWhite ? 'text-piece-white' : 'text-piece-black',
-        selected && 'scale-110 animate-pulse-gold',
+        selected && 'scale-110 animate-pulse-gold-text',
         animated && 'animate-piece-place',
         onClick && 'hover:scale-110 active:scale-95',
         className

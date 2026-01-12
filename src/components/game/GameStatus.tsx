@@ -17,7 +17,7 @@ export const GameStatus = ({
   if (winner) {
     return (
       <div className="text-center space-y-2">
-        <h2 className="font-display text-3xl text-accent animate-pulse-gold">
+        <h2 className="font-display text-3xl text-accent animate-pulse-gold-text">
           {winner === 'white' ? 'White' : 'Black'} Wins!
         </h2>
         <p className="text-muted-foreground">
