@@ -10,20 +10,12 @@ interface ChessPieceProps {
   className?: string;
 }
 
-// Filled symbols for white pieces (solid look)
+// Filled symbols for both players (solid look)
 const filledSymbols: Record<Piece['type'], string> = {
   rook: '♜',
   bishop: '♝',
   knight: '♞',
   pawn: '♟',
-};
-
-// Outlined symbols for black pieces (outline look)
-const outlinedSymbols: Record<Piece['type'], string> = {
-  rook: '♖',
-  bishop: '♗',
-  knight: '♘',
-  pawn: '♙',
 };
 
 const sizeClasses = {
@@ -41,8 +33,7 @@ export const ChessPiece = ({
   className,
 }: ChessPieceProps) => {
   const isWhite = piece.player === 'white';
-  // White uses filled symbols (solid), Black uses outlined symbols (stroke only)
-  const symbol = isWhite ? filledSymbols[piece.type] : outlinedSymbols[piece.type];
+  const symbol = filledSymbols[piece.type];
 
   return (
     <div
@@ -63,10 +54,10 @@ export const ChessPiece = ({
         textShadow: '0 2px 4px hsl(0 0% 0% / 0.35)',
         paintOrder: 'stroke fill',
       } : {
-        // Black pieces: transparent fill with prominent light stroke (outline only)
-        color: 'transparent',
-        WebkitTextStroke: '2.5px hsl(40 35% 92%)',
-        textShadow: '0 0 6px hsl(40 30% 85% / 0.5), 0 2px 3px hsl(0 0% 0% / 0.3)',
+        // Black pieces: solid black fill with light outline for visibility
+        color: 'hsl(20 20% 12%)',
+        WebkitTextStroke: '1px hsl(40 30% 85%)',
+        textShadow: '0 0 8px hsl(40 30% 90% / 0.4), 0 2px 4px hsl(0 0% 0% / 0.4)',
         paintOrder: 'stroke fill',
       }}
     >
