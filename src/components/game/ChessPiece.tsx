@@ -10,8 +10,16 @@ interface ChessPieceProps {
   className?: string;
 }
 
-// Use outlined symbols for all pieces - differentiate by CSS color
-const pieceSymbols: Record<Piece['type'], string> = {
+// Filled symbols for white pieces (solid look)
+const filledSymbols: Record<Piece['type'], string> = {
+  rook: '♜',
+  bishop: '♝',
+  knight: '♞',
+  pawn: '♟',
+};
+
+// Outlined symbols for black pieces (outline look)
+const outlinedSymbols: Record<Piece['type'], string> = {
   rook: '♖',
   bishop: '♗',
   knight: '♘',
@@ -32,30 +40,33 @@ export const ChessPiece = ({
   animated = false,
   className,
 }: ChessPieceProps) => {
-  const symbol = pieceSymbols[piece.type];
   const isWhite = piece.player === 'white';
+  // White uses filled symbols (solid), Black uses outlined symbols (stroke only)
+  const symbol = isWhite ? filledSymbols[piece.type] : outlinedSymbols[piece.type];
 
   return (
     <div
       onClick={onClick}
       className={cn(
         'flex items-center justify-center cursor-pointer transition-all duration-200',
-        'select-none piece-shadow',
+        'select-none',
         sizeClasses[size],
-        isWhite ? 'text-piece-white' : 'text-piece-black',
         selected && 'scale-110 animate-pulse-gold-text',
         animated && 'animate-piece-place',
         onClick && 'hover:scale-110 active:scale-95',
         className
       )}
-      style={{
-        color: isWhite ? 'hsl(var(--piece-white))' : 'hsl(var(--piece-black))',
-        WebkitTextStroke: isWhite 
-          ? '1.5px hsl(var(--piece-white-stroke))'
-          : '2px hsl(var(--piece-black-stroke))',
-        textShadow: isWhite 
-          ? '0 2px 4px hsl(0 0% 0% / 0.4)'
-          : '0 0 8px hsl(var(--piece-black-stroke) / 0.6), 0 2px 4px hsl(0 0% 0% / 0.5)',
+      style={isWhite ? {
+        // White pieces: solid white fill with subtle dark outline
+        color: 'hsl(40 30% 96%)',
+        WebkitTextStroke: '1px hsl(25 35% 25%)',
+        textShadow: '0 2px 4px hsl(0 0% 0% / 0.35)',
+        paintOrder: 'stroke fill',
+      } : {
+        // Black pieces: transparent fill with prominent light stroke (outline only)
+        color: 'transparent',
+        WebkitTextStroke: '2.5px hsl(40 35% 92%)',
+        textShadow: '0 0 6px hsl(40 30% 85% / 0.5), 0 2px 3px hsl(0 0% 0% / 0.3)',
         paintOrder: 'stroke fill',
       }}
     >
