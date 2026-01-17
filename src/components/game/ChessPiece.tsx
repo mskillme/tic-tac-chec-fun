@@ -11,11 +11,12 @@ interface ChessPieceProps {
 }
 
 // Filled symbols for both players (solid look)
+// Using text variation selector (U+FE0E) to force text rendering instead of emoji
 const filledSymbols: Record<Piece['type'], string> = {
-  rook: '♜',
-  bishop: '♝',
-  knight: '♞',
-  pawn: '♙',
+  rook: '♜︎',
+  bishop: '♝︎',
+  knight: '♞︎',
+  pawn: '♟︎',
 };
 
 const sizeClasses = {
