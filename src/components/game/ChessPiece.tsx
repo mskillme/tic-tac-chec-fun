@@ -15,7 +15,7 @@ const filledSymbols: Record<Piece['type'], string> = {
   rook: '♜',
   bishop: '♝',
   knight: '♞',
-  pawn: '♟',
+  pawn: '♙',
 };
 
 const sizeClasses = {

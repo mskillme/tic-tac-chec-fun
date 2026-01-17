@@ -255,10 +255,10 @@ const Game = () => {
   const selectedPieceId = gameState.selectedPiece?.piece.id;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 wood-grain">
-      <div className="max-w-lg w-full space-y-6">
+    <div className="h-screen flex flex-col items-center justify-center p-2 sm:p-4 wood-grain overflow-hidden">
+      <div className="max-w-lg w-full flex flex-col flex-1 justify-between py-2 max-h-full">
         {/* Header Controls */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center shrink-0">
           <GameStatus
             currentPlayer={gameState.currentPlayer}
             phase={gameState.phase}
@@ -293,14 +293,16 @@ const Game = () => {
         )}
 
         {/* Black Rack (top) */}
-        <PieceRack
-          pieces={gameState.blackReserve}
-          player="black"
-          isCurrentPlayer={gameState.currentPlayer === 'black' && !gameState.winner}
-          selectedPieceId={gameState.currentPlayer === 'black' ? selectedPieceId : undefined}
-          onPieceSelect={handleReserveSelect}
-          label={mode === 'ai' ? 'Computer' : 'Black'}
-        />
+        <div className="shrink-0">
+          <PieceRack
+            pieces={gameState.blackReserve}
+            player="black"
+            isCurrentPlayer={gameState.currentPlayer === 'black' && !gameState.winner}
+            selectedPieceId={gameState.currentPlayer === 'black' ? selectedPieceId : undefined}
+            onPieceSelect={handleReserveSelect}
+            label={mode === 'ai' ? 'Computer' : 'Black'}
+          />
+        </div>
 
         {/* Game Board */}
         <div className="flex justify-center">
@@ -314,14 +316,16 @@ const Game = () => {
         </div>
 
         {/* White Rack (bottom) */}
-        <PieceRack
-          pieces={gameState.whiteReserve}
-          player="white"
-          isCurrentPlayer={gameState.currentPlayer === 'white' && !gameState.winner}
-          selectedPieceId={gameState.currentPlayer === 'white' ? selectedPieceId : undefined}
-          onPieceSelect={handleReserveSelect}
-          label={mode === 'ai' ? 'You' : 'White'}
-        />
+        <div className="shrink-0">
+          <PieceRack
+            pieces={gameState.whiteReserve}
+            player="white"
+            isCurrentPlayer={gameState.currentPlayer === 'white' && !gameState.winner}
+            selectedPieceId={gameState.currentPlayer === 'white' ? selectedPieceId : undefined}
+            onPieceSelect={handleReserveSelect}
+            label={mode === 'ai' ? 'You' : 'White'}
+          />
+        </div>
 
         {/* Play Again Button */}
         {gameState.winner && (
