@@ -73,7 +73,7 @@ export const useLeaderboard = () => {
           .from('leaderboard')
           .select('*')
           .eq('device_id', deviceId)
-          .single();
+          .maybeSingle();
 
         if (!ownError && ownEntry) {
           // Find player's rank based on their total_wins
