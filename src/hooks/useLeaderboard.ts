@@ -154,11 +154,35 @@ export const useLeaderboard = () => {
     await recordWin(wins, games, bestStreak);
   }, [initials, recordWin]);
 
+  // Initial fetch
   useEffect(() => {
     if (deviceId) {
       fetchLeaderboard();
     }
   }, [deviceId, fetchLeaderboard]);
+
+  // Subscribe to realtime updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('leaderboard-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leaderboard',
+        },
+        () => {
+          // Refresh leaderboard when any change happens
+          fetchLeaderboard();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchLeaderboard]);
 
   return {
     leaderboard,
