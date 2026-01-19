@@ -154,15 +154,13 @@ export const useLeaderboard = () => {
     await recordWin(wins, games, bestStreak);
   }, [initials, recordWin]);
 
-  // Initial fetch
+  // Initial fetch and realtime subscription
   useEffect(() => {
     if (deviceId) {
       fetchLeaderboard();
     }
-  }, [deviceId, fetchLeaderboard]);
 
-  // Subscribe to realtime updates
-  useEffect(() => {
+    // Subscribe to realtime updates
     const channel = supabase
       .channel('leaderboard-changes')
       .on(
@@ -182,7 +180,7 @@ export const useLeaderboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchLeaderboard]);
+  }, [deviceId, fetchLeaderboard]);
 
   return {
     leaderboard,
